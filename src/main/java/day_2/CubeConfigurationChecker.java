@@ -42,13 +42,17 @@ public class CubeConfigurationChecker
             }
 
             int sumOfPossibleGameIds = 0;
+            int sumOfThePowerOfAllGames = 0;
 
             for (Integer gameId: allGamesInfoMap.keySet()) {
                 HashMap<String, Integer> gameInfoWithHighestAmountOfEachCubeColor = getHighestAmountPerCubeColor(allGamesInfoMap.get(gameId));
+                int powerOfMinimumSetOfCubes = 1;
 
                 boolean cubeAmountIsPossible = true;
 
                 for (String cubeColor: gameInfoWithHighestAmountOfEachCubeColor.keySet()) {
+                    powerOfMinimumSetOfCubes = powerOfMinimumSetOfCubes * gameInfoWithHighestAmountOfEachCubeColor.get(cubeColor);
+
                     if (Objects.equals(cubeColor, RED_CUBE) && gameInfoWithHighestAmountOfEachCubeColor.get(cubeColor) > RED_CUBE_AMOUNT_CONFIG) {
                         cubeAmountIsPossible = false;
                     }
@@ -62,12 +66,15 @@ public class CubeConfigurationChecker
                     }
                 }
 
+                sumOfThePowerOfAllGames += powerOfMinimumSetOfCubes;
+
                 if (cubeAmountIsPossible) {
                     sumOfPossibleGameIds += gameId;
                 }
             }
 
-            System.out.print(sumOfPossibleGameIds);
+            System.out.printf("sumOfPossibleGameIds: %d\n", sumOfPossibleGameIds);
+            System.out.printf("sumOfThePowerOfAllGames: %d\n", sumOfThePowerOfAllGames);
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred", e);
         }
