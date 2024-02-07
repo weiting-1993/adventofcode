@@ -1,7 +1,5 @@
 package day_2;
 
-import day_1.CalibrationValueSumCalculator;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,7 +24,7 @@ public class CubeConfigurationChecker
 
     private static final Integer GREEN_CUBE_AMOUNT_CONFIG = 13;
 
-    private static final Logger logger = Logger.getLogger(CalibrationValueSumCalculator.class.getName());
+    private static final Logger logger = Logger.getLogger(CubeConfigurationChecker.class.getName());
 
     public static void main(String[] args)
     {
