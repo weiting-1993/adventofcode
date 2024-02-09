@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -20,15 +21,25 @@ public class CardPointSumCalculator
         try {
             List<String> input = Files.readAllLines(Paths.get(INPUT_FILE_PATH));
             HashMap<Integer, HashMap<String, List<Integer>>> allCards = createAllCardsMap(input);
+            HashMap<Integer, Integer> cardAndItsInstancesCountMap = createAllCardsAndItsTotalInstanceCountMap(allCards);
+
             int sumOfCardPoints = 0;
+            int totalScratchcardsCount = 0;
 
-            System.out.println(allCards);
+            for (Map.Entry<Integer, HashMap<String, List<Integer>>> card: allCards.entrySet()) {
+                int matchesCount = calculateCardTotalMatchesCount(card.getValue());
 
-            for (int cardIndicator: allCards.keySet()) {
-                sumOfCardPoints += calculateCardPoint(allCards.get(cardIndicator));
+                if (matchesCount > 0) {
+                    sumOfCardPoints += (int) Math.pow(2, matchesCount - 1);
+                }
             }
 
-            System.out.println(sumOfCardPoints);
+            for (Map.Entry<Integer, Integer> cardAndItsInstancesCount: cardAndItsInstancesCountMap.entrySet()) {
+                totalScratchcardsCount += cardAndItsInstancesCount.getValue();
+            }
+
+            System.out.println("sumOfCardPoints:" + sumOfCardPoints);
+            System.out.println("totalScratchcardsCount:" + totalScratchcardsCount);
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred", e);
         }
@@ -41,9 +52,9 @@ public class CardPointSumCalculator
 
         for (String card: input) {
             HashMap<String, List<Integer>> winningAndPlayingNumberMap = new HashMap<>();
-            String[] cardIndicatorAndNumbers = card.split(":");
-            int cardIndicator = Integer.parseInt(cardIndicatorAndNumbers[0].replace(" ", "").substring(4));
-            String[] winningAndPlayNumberArray = cardIndicatorAndNumbers[1].trim().split("\\|");
+            String[] cardIdentifierAndNumbers = card.split(":");
+            int cardIdentifier = Integer.parseInt(cardIdentifierAndNumbers[0].replace(" ", "").substring(4));
+            String[] winningAndPlayNumberArray = cardIdentifierAndNumbers[1].trim().split("\\|");
             String winningNumbers = winningAndPlayNumberArray[0].trim();
             String playingNumbers = winningAndPlayNumberArray[1].trim();
 
@@ -65,25 +76,51 @@ public class CardPointSumCalculator
 
             winningAndPlayingNumberMap.put("winningNumbers", winningNumberList);
             winningAndPlayingNumberMap.put("playingNumbers", playingNumberList);
-            allCardsMap.put(cardIndicator, winningAndPlayingNumberMap);
+            allCardsMap.put(cardIdentifier, winningAndPlayingNumberMap);
         }
 
         return allCardsMap;
     }
 
-    public static int calculateCardPoint(HashMap<String, List<Integer>> cardNumbers) {
-        int matchNumberCount = -1;
+    public static int calculateCardTotalMatchesCount(HashMap<String, List<Integer>> cardNumbers) {
+        int matchesNumberCount = 0;
 
         for (int playingNumber: cardNumbers.get("playingNumbers")) {
             if (cardNumbers.get("winningNumbers").contains(playingNumber)) {
-                matchNumberCount++;
+                matchesNumberCount++;
             }
         }
 
-        if (matchNumberCount == -1) {
-            return 0;
+        return matchesNumberCount;
+    }
+
+    public static HashMap<Integer, Integer> createAllCardsAndItsTotalInstanceCountMap(HashMap<Integer, HashMap<String, List<Integer>>> allCardsMap)
+    {
+        HashMap<Integer, Integer> allCardsAndItsTotalInstanceCountMap = new HashMap<>();
+
+        int originalCardsSize = allCardsMap.size();
+
+        for (int cardIdentifier: allCardsMap.keySet()) {
+            allCardsAndItsTotalInstanceCountMap.put(cardIdentifier, 1);
         }
 
-        return (int) Math.pow(2, matchNumberCount);
+        for (int cardIdentifier: allCardsMap.keySet()) {
+            int matchesAmount = calculateCardTotalMatchesCount(allCardsMap.get(cardIdentifier));
+
+            for (int iteration = 1; iteration <= matchesAmount; iteration++) {
+                int cardIdentifierForCopy = cardIdentifier + iteration;
+
+                if (cardIdentifierForCopy > originalCardsSize) {
+                    break;
+                }
+
+                allCardsAndItsTotalInstanceCountMap.put(
+                    cardIdentifierForCopy,
+                    allCardsAndItsTotalInstanceCountMap.get(cardIdentifierForCopy) + allCardsAndItsTotalInstanceCountMap.get(cardIdentifier)
+                );
+            }
+        }
+
+        return allCardsAndItsTotalInstanceCountMap;
     }
 }
