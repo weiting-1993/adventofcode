@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -15,32 +14,50 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SeedCultivation
+public class SeedLocationFinder
 {
     private static final String INPUT_FILE_PATH = "src/main/java/day_5/input.txt";
-    private static final Logger logger = Logger.getLogger(SeedCultivation.class.getName());
+    private static final Logger logger = Logger.getLogger(SeedLocationFinder.class.getName());
 
     public static void main(String[] args)
     {
         try {
             List<String> input = Files.readAllLines(Paths.get(INPUT_FILE_PATH));
             String[] seeds = input.getFirst().trim().substring("seeds: ".length()).split(" ");
-            LinkedHashMap<String, List<LinkedHashMap<String, Long>>> seedsCultivationMap = createSeedsCultivationMap(input);
-            LinkedHashMap<Long, LinkedHashMap<String, Long>> seedAndItsCorrespondingNumbersMap = createSeedAndItsCorrespondingNumbersMap(seeds, seedsCultivationMap);
+            LinkedHashMap<String, List<LinkedHashMap<String, Long>>> seedNumberMap = createSeedNumberMap(input);
 
-            List<Long> locationList = new ArrayList<>();
+            long minLocationNumberForPart1 = Long.MAX_VALUE;
+            long minLocationNumberForPart2 = Long.MAX_VALUE;
 
-            for (LinkedHashMap<String, Long> correspondingNumbersMap: seedAndItsCorrespondingNumbersMap.values()) {
-                locationList.add(correspondingNumbersMap.get("location"));
+            for (String seedNumber: seeds) {
+                long locationNumber = getLocationNumber(Long.parseLong(seedNumber), seedNumberMap);
+
+                if (locationNumber < minLocationNumberForPart1) {
+                    minLocationNumberForPart1 = locationNumber;
+                }
             }
 
-            System.out.println("Part 1:" + Collections.min(locationList));
+            for (int i = 0; i < seeds.length; i += 2) {
+                long seedNumberStart = Long.parseLong(seeds[i]);
+                long seedNumberRange = Long.parseLong(seeds[i + 1]);
+
+                for (long seedNumber = seedNumberStart; seedNumber < seedNumberStart + seedNumberRange; seedNumber++) {
+                    long locationNumber = getLocationNumber(seedNumber, seedNumberMap);
+
+                    if (locationNumber < minLocationNumberForPart2) {
+                        minLocationNumberForPart2 = locationNumber;
+                    }
+                }
+            }
+
+            System.out.println("Part 1:" + minLocationNumberForPart1);
+            System.out.println("Part 2:" + minLocationNumberForPart2);
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred", e);
         }
     }
 
-    public static LinkedHashMap<String, List<LinkedHashMap<String, Long>>> createSeedsCultivationMap(List<String> input)
+    public static LinkedHashMap<String, List<LinkedHashMap<String, Long>>> createSeedNumberMap(List<String> input)
     {
         LinkedHashMap<String, List<LinkedHashMap<String, Long>>> seedCultivationMap = new LinkedHashMap<>();
         Pattern alphabetPattern = Pattern.compile(".*[a-zA-Z].*");
@@ -100,47 +117,33 @@ public class SeedCultivation
         return  hashMapList;
     }
 
-    public static LinkedHashMap<Long, LinkedHashMap<String, Long>> createSeedAndItsCorrespondingNumbersMap(
-        String[] seeds,
-        LinkedHashMap<String, List<LinkedHashMap<String, Long>>> seedsCultivationMap
-    ) {
-        LinkedHashMap<Long, LinkedHashMap<String, Long>> seedAndItsCorrespondingNumbersMap = new LinkedHashMap<>();
+    public static long getLocationNumber (Long seedNumber, LinkedHashMap<String, List<LinkedHashMap<String, Long>>> map)
+    {
+        long srcCategory = seedNumber;
+        long destCategory = 0;
 
-        for (String seed: seeds) {
-            long seedNumber = Long.parseLong(seed);
-            LinkedHashMap<String, Long> nameAndNumberMap = new LinkedHashMap<>();
-            long srcCategory = seedNumber;
+        for (Map.Entry<String, List<LinkedHashMap<String, Long>>> seedNumberToOtherCategoryNumberMap:map.entrySet()) {
+            int iteration = 1;
+            for (LinkedHashMap<String, Long> srcDestMap: seedNumberToOtherCategoryNumberMap.getValue()) {
+                long srcStart = srcDestMap.get("srcStart");
+                long srcEnd = srcDestMap.get("srcEnd");
+                long destStart = srcDestMap.get("destStart");
 
-            for (Map.Entry<String, List<LinkedHashMap<String, Long>>> seedCultivationMap:seedsCultivationMap.entrySet()) {
-                String name = seedCultivationMap.getKey().split("-")[2];
-
-                int iteration = 1;
-                for (LinkedHashMap<String, Long> srcDestMap: seedCultivationMap.getValue()) {
-                    if (nameAndNumberMap.containsKey(name)) break;
-
-                    long destCategory = 0;
-                    long srcStart = srcDestMap.get("srcStart");
-                    long srcEnd = srcDestMap.get("srcEnd");
-                    long destStart = srcDestMap.get("destStart");
-
-                    if (srcCategory >= srcStart && srcCategory <= srcEnd) {
-                        destCategory = destStart + (srcCategory - srcStart);
-                        srcCategory = destCategory;
-                        nameAndNumberMap.put(name, destCategory);
-                    }
-
-                    if (iteration == seedCultivationMap.getValue().size() && destCategory == 0) {
-                        destCategory = srcCategory;
-                        nameAndNumberMap.put(name, destCategory);
-                    }
-
-                    iteration++;
+                if (srcCategory >= srcStart && srcCategory <= srcEnd) {
+                    destCategory = destStart + (srcCategory - srcStart);
+                    srcCategory = destCategory;
+                    break;
                 }
-            }
 
-            seedAndItsCorrespondingNumbersMap.put(seedNumber, nameAndNumberMap);
+                if (iteration == seedNumberToOtherCategoryNumberMap.getValue().size() && destCategory == 0) {
+                    destCategory = srcCategory;
+                    break;
+                }
+
+                iteration++;
+            }
         }
 
-        return seedAndItsCorrespondingNumbersMap;
+        return destCategory;
     }
 }
