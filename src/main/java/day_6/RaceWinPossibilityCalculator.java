@@ -22,23 +22,24 @@ public class RaceWinPossibilityCalculator
     {
         try {
             List<String> input = Files.readAllLines(Paths.get(INPUT_FILE_PATH));
-            List<HashMap<String, Integer>> raceList = createRaceList(input);
+            List<HashMap<String, Long>> raceList = createRaceList(input);
 
-            int totalWinningPossibilities = 1;
+            long totalWinningPossibilities = 1;
 
-            for (HashMap<String, Integer> raceMap: raceList) {
+            for (HashMap<String, Long> raceMap: raceList) {
                 totalWinningPossibilities *= calculateWinningPossibilities(raceMap);
             }
 
             System.out.println("Part 1: " + totalWinningPossibilities);
+            System.out.println("Part 2: " + calculateWinningPossibilities(createRaceInfo(input)));
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred", e);
         }
     }
 
-    public static List<HashMap<String, Integer>> createRaceList(List<String> input)
+    public static List<HashMap<String, Long>> createRaceList(List<String> input)
     {
-        List<HashMap<String, Integer>> raceMap = new ArrayList<>();
+        List<HashMap<String, Long>> raceMap = new ArrayList<>();
 
         Pattern digitPattern = Pattern.compile("\\d+");
 
@@ -49,10 +50,10 @@ public class RaceWinPossibilityCalculator
         Matcher distanceMatcher = digitPattern.matcher(distanceOfAllRaces);
 
         while (timeMatcher.find() && distanceMatcher.find()) {
-            HashMap<String, Integer> timeAndDistanceMap = new HashMap<>();
+            HashMap<String, Long> timeAndDistanceMap = new HashMap<>();
 
-            timeAndDistanceMap.put(RACE_TIME, Integer.parseInt(timeMatcher.group()));
-            timeAndDistanceMap.put(RACE_DISTANCE, Integer.parseInt(distanceMatcher.group()));
+            timeAndDistanceMap.put(RACE_TIME, Long.parseLong(timeMatcher.group()));
+            timeAndDistanceMap.put(RACE_DISTANCE, Long.parseLong(distanceMatcher.group()));
 
             raceMap.add(timeAndDistanceMap);
         }
@@ -60,15 +61,28 @@ public class RaceWinPossibilityCalculator
         return raceMap;
     }
 
-    public static int calculateWinningPossibilities(HashMap<String, Integer> raceMap)
+    public static HashMap<String, Long> createRaceInfo(List<String> input)
     {
-        int winningPossibilities = 0;
-        int raceTime = raceMap.get(RACE_TIME);
-        int raceDistanceRecord = raceMap.get(RACE_DISTANCE);
+        HashMap<String, Long> raceMap = new HashMap<>();
 
-        for (int carSpeed = 0; carSpeed <= raceTime; carSpeed++) {
-            int timeForMoving = raceTime - carSpeed;
-            int movedDistance = timeForMoving * carSpeed;
+        String raceTime = input.getFirst().split(":")[1].trim().replace(" ", "");
+        String raceDistanceRecord = input.getLast().split(":")[1].trim().replace(" ", "");
+
+        raceMap.put(RACE_TIME, Long.parseLong(raceTime));
+        raceMap.put(RACE_DISTANCE, Long.parseLong(raceDistanceRecord));
+
+        return raceMap;
+    }
+
+    public static long calculateWinningPossibilities(HashMap<String, Long> raceMap)
+    {
+        long winningPossibilities = 0;
+        long raceTime = raceMap.get(RACE_TIME);
+        long raceDistanceRecord = raceMap.get(RACE_DISTANCE);
+
+        for (long carSpeed = 0; carSpeed <= raceTime; carSpeed++) {
+            long timeForMoving = raceTime - carSpeed;
+            long movedDistance = timeForMoving * carSpeed;
 
             if (movedDistance > raceDistanceRecord) {
                 winningPossibilities++;
