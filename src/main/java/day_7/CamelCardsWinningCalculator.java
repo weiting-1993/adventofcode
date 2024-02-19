@@ -30,20 +30,27 @@ public class CamelCardsWinningCalculator
     {
         try {
             List<String> input = Files.readAllLines(Paths.get(INPUT_FILE_PATH));
-            LinkedHashMap<String, HashMap<String, Integer>> cardHandBidAndRankingMap = createCardHandBidAndRankingMap(input);
-            long totalWinnings = 0;
+            LinkedHashMap<String, HashMap<String, Integer>> cardHandBidAndRankingMapWithoutWildcardConsideration = createCardHandBidAndRankingMap(input, false);
+            LinkedHashMap<String, HashMap<String, Integer>> cardHandBidAndRankingMapWithWildcardConsideration = createCardHandBidAndRankingMap(input, true);
+            long totalWinningsWithoutWildcardConsideration = 0;
+            long totalWinningsWitWildcardConsideration = 0;
 
-            for (HashMap<String, Integer> map: cardHandBidAndRankingMap.values()) {
-                totalWinnings += (long) map.get("bid") * map.get("rank");
+            for (HashMap<String, Integer> map: cardHandBidAndRankingMapWithoutWildcardConsideration.values()) {
+                totalWinningsWithoutWildcardConsideration += (long) map.get("bid") * map.get("rank");
             }
 
-            System.out.println("Part 1: " + totalWinnings);
+            for (HashMap<String, Integer> map: cardHandBidAndRankingMapWithWildcardConsideration.values()) {
+                totalWinningsWitWildcardConsideration += (long) map.get("bid") * map.get("rank");
+            }
+
+            System.out.println("Part 1: " + totalWinningsWithoutWildcardConsideration);
+            System.out.println("Part 2: " + totalWinningsWitWildcardConsideration);
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred", e);
         }
     }
 
-    private static LinkedHashMap<String, HashMap<String, Integer>> createCardHandBidAndRankingMap(List<String> input)
+    private static LinkedHashMap<String, HashMap<String, Integer>> createCardHandBidAndRankingMap(List<String> input, boolean considerWildCard)
     {
         LinkedHashMap<String, HashMap<String, Integer>> cardHandBidAndRankingMap = new LinkedHashMap<>();
         HashMap<String, Integer> fiveKindHandMap = new HashMap<>();
@@ -58,7 +65,7 @@ public class CamelCardsWinningCalculator
             String[] handInfo = line.trim().split(" ");
             String cardLabels = handInfo[0];
             int bid = Integer.parseInt(handInfo[1]);
-            int handType = determineHandType(cardLabels);
+            int handType = considerWildCard ? determineHandTypeConsideringWildCard(cardLabels) : determineHandType(cardLabels);
 
             switch (handType) {
                 case FIVE_KIND_TYPE -> fiveKindHandMap.put(cardLabels, bid);
@@ -72,13 +79,13 @@ public class CamelCardsWinningCalculator
         }
 
         LinkedHashMap<String, Integer> mergedMap = new LinkedHashMap<>();
-        mergedMap.putAll(sortMapByKey(highCardHandMap));
-        mergedMap.putAll(sortMapByKey(onePairHandMap));
-        mergedMap.putAll(sortMapByKey(twoPairsHandMap));
-        mergedMap.putAll(sortMapByKey(threeKindHandMap));
-        mergedMap.putAll(sortMapByKey(fullHouseHandMap));
-        mergedMap.putAll(sortMapByKey(fourKindHandMap));
-        mergedMap.putAll(sortMapByKey(fiveKindHandMap));
+        mergedMap.putAll(sortMapByKey(highCardHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(onePairHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(twoPairsHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(threeKindHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(fullHouseHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(fourKindHandMap, considerWildCard));
+        mergedMap.putAll(sortMapByKey(fiveKindHandMap, considerWildCard));
 
         int ranking = 1;
 
@@ -96,7 +103,7 @@ public class CamelCardsWinningCalculator
     private static int determineHandType(String cardHand)
     {
         String sortedCardHand = sortString(cardHand);
-        List<String> groupedCardHand = groupString(sortedCardHand);
+        List<String> groupedCardHand = groupSortedString(sortedCardHand);
 
         int groupedCardHandSize = groupedCardHand.size();
 
@@ -122,13 +129,58 @@ public class CamelCardsWinningCalculator
         }
     }
 
+    private static int determineHandTypeConsideringWildCard(String cardHand)
+    {
+        String sortedCardHand = sortString(cardHand);
+        List<String> groupedCardHand = groupSortedString(sortedCardHand);
+        int groupedCardHandSize = groupedCardHand.size();
+        int charJOccurrenceCounts = countJOccurrences(sortedCardHand);
+        String firstStringGroup = groupedCardHand.getFirst();
+
+        switch (groupedCardHandSize) {
+            case 5:
+                if (charJOccurrenceCounts == 1) {
+                    return ONE_PAIR_TYPE;
+                } else {
+                    return HIGH_CARD_TYPE;
+                }
+            case 4:
+                if (List.of(1, 2).contains(charJOccurrenceCounts)) {
+                    return THREE_KIND_TYPE;
+                } else {
+                    return ONE_PAIR_TYPE;
+                }
+            case 3:
+                if (firstStringGroup.length() == 3 && charJOccurrenceCounts == 0) {
+                    return THREE_KIND_TYPE;
+                } else if ((firstStringGroup.length() == 3 && List.of(1, 3).contains(charJOccurrenceCounts))
+                    || (firstStringGroup.length() == 2 && charJOccurrenceCounts == 2)) {
+                    return FOUR_KIND_TYPE;
+                } else if (firstStringGroup.length() == 2 && charJOccurrenceCounts == 1) {
+                    return FULL_HOUSE_TYPE;
+                } else {
+                    return TWO_PAIRS_TYPE;
+                }
+            case 2:
+                if (firstStringGroup.length() == 4 && charJOccurrenceCounts == 0) {
+                    return FOUR_KIND_TYPE;
+                } else if (List.of(1, 2, 3, 4).contains(charJOccurrenceCounts)) {
+                    return FIVE_KIND_TYPE;
+                } else {
+                    return FULL_HOUSE_TYPE;
+                }
+            default:
+                return FIVE_KIND_TYPE;
+        }
+    }
+
     private static String sortString(String str) {
         char[] charArray = str.toCharArray();
         Arrays.sort(charArray);
         return new String(charArray);
     }
 
-    private static List<String> groupString(String str) {
+    private static List<String> groupSortedString(String str) {
         List<String> groupedStrings = new ArrayList<>();
 
         StringBuilder currentGroup = new StringBuilder();
@@ -143,18 +195,30 @@ public class CamelCardsWinningCalculator
                 groupedStrings.add(currentGroup.toString());
                 currentGroup.setLength(0);
                 currentGroup.append(currentChar);
+                prevChar = currentChar;
             }
-            prevChar = currentChar;
         }
 
         groupedStrings.add(currentGroup.toString());
+        groupedStrings.sort(new StringLengthComparator());
 
         return groupedStrings;
     }
 
-    private static LinkedHashMap<String, Integer> sortMapByKey(HashMap<String, Integer> map)
+    public static int countJOccurrences(String str) {
+        int count = 0;
+        for (int i = 0; i < str.length(); i++) {
+            if (str.charAt(i) == 'J') {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static LinkedHashMap<String, Integer> sortMapByKey(HashMap<String, Integer> map, boolean considerWildCard)
     {
-        return map.entrySet().stream().sorted(new HashMapKeyComparator()).collect(
+        return map.entrySet().stream().sorted(new HashMapKeyComparator(considerWildCard)).collect(
             Collectors.toMap(
                 Map.Entry::getKey,
                 Map.Entry::getValue,
@@ -166,6 +230,11 @@ public class CamelCardsWinningCalculator
 
     static class HashMapKeyComparator implements Comparator<Map.Entry<String, Integer>>
     {
+        private final boolean considerWildcard;
+
+        public HashMapKeyComparator(boolean considerWildcard) {
+            this.considerWildcard = considerWildcard;
+        }
         @Override
         public int compare(Map.Entry<String, Integer> map1, Map.Entry<String, Integer> map2) {
             String key1 = map1.getKey();
@@ -184,15 +253,23 @@ public class CamelCardsWinningCalculator
             return key1.length() - key2.length();
         }
 
-        private int getCharacterStrength(char c) {
+        protected int getCharacterStrength(char c) {
             return switch (c) {
                 case 'A' -> 14;
                 case 'K' -> 13;
                 case 'Q' -> 12;
-                case 'J' -> 11;
+                case 'J' -> considerWildcard ? 1 : 11;
                 case 'T' -> 10;
                 default -> Character.getNumericValue(c);
             };
+        }
+    }
+
+    static class StringLengthComparator implements Comparator<String> {
+        @Override
+        public int compare(String str1, String str2) {
+            // Compare strings based on their lengths (longest first)
+            return Integer.compare(str2.length(), str1.length());
         }
     }
 }
