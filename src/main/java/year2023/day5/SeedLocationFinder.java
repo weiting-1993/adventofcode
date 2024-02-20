@@ -1,4 +1,4 @@
-package day_5;
+package year2023.day5;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 public class SeedLocationFinder
 {
-    private static final String INPUT_FILE_PATH = "src/main/java/day_5/input.txt";
+    private static final String INPUT_FILE_PATH = "src/main/java/year2023/day5/input.txt";
     private static final Logger logger = Logger.getLogger(SeedLocationFinder.class.getName());
 
     public static void main(String[] args)

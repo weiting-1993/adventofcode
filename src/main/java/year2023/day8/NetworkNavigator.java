@@ -1,4 +1,4 @@
-package day_8;
+package year2023.day8;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public class NetworkNavigator
 {
-    private static final String INPUT_FILE_PATH = "src/main/java/day_8/input.txt";
+    private static final String INPUT_FILE_PATH = "src/main/java/year2023/day8/input.txt";
     private static final Logger logger = Logger.getLogger(NetworkNavigator.class.getName());
     private static final String RIGHT = "R";
     private static final String LEFT = "L";

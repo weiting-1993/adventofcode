@@ -1,4 +1,4 @@
-package day_2;
+package year2023.day2;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +28,7 @@ public class CubeConfigurationChecker
 
     public static void main(String[] args)
     {
-        String filePath = "src/main/java/day_2/input.txt";
+        String filePath = "src/main/java/year2023/day2/input.txt";
 
         try {
             HashMap<Integer, List<HashMap<String, Integer>>> allGamesInfoMap = new HashMap<>();

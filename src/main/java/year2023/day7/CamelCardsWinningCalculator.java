@@ -1,4 +1,4 @@
-package day_7;
+package year2023.day7;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class CamelCardsWinningCalculator
 {
-    private static final String INPUT_FILE_PATH = "src/main/java/day_7/input.txt";
+    private static final String INPUT_FILE_PATH = "src/main/java/year2023/day7/input.txt";
     private static final Logger logger = Logger.getLogger(CamelCardsWinningCalculator.class.getName());
     private static final int FIVE_KIND_TYPE = 7; //1 (5)
     private static final int FOUR_KIND_TYPE = 6; //2 (4,1)

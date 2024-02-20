@@ -1,4 +1,4 @@
-package day_4;
+package year2023.day4;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 public class CardPointSumCalculator
 {
-    private static final String INPUT_FILE_PATH = "src/main/java/day_4/input.txt";
+    private static final String INPUT_FILE_PATH = "src/main/java/year2023/day4/input.txt";
     private static final Logger logger = Logger.getLogger(CardPointSumCalculator.class.getName());
     public static void main(String[] args)
     {

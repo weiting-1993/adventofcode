@@ -1,4 +1,4 @@
-package day_3;
+package year2023.day3;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +16,7 @@ public class GearRatioSumCalculator
     private static final Logger logger = Logger.getLogger(GearRatioSumCalculator.class.getName());
     public static void main(String[] args)
     {
-        String filePath = "src/main/java/day_3/input.txt";
+        String filePath = "src/main/java/year2023/day3/input.txt";
 
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));

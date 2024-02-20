@@ -1,4 +1,4 @@
-package day_6;
+package year2023.day6;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class RaceWinPossibilityCalculator
 {
-    private static final String INPUT_FILE_PATH = "src/main/java/day_6/input.txt";
+    private static final String INPUT_FILE_PATH = "src/main/java/year2023/day6/input.txt";
     private static final Logger logger = Logger.getLogger(RaceWinPossibilityCalculator.class.getName());
     private static final String RACE_TIME = "time";
     private static final String RACE_DISTANCE = "distance";

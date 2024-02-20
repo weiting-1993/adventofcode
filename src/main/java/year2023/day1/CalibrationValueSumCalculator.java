@@ -1,4 +1,4 @@
-package day_1;
+package year2023.day1;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +25,7 @@ public class CalibrationValueSumCalculator
         numberWordDigitMap.put("eight", "8");
         numberWordDigitMap.put("nine", "9");
 
-        String filePath = "src/main/java/day_1/input.txt";
+        String filePath = "src/main/java/year2023/day1/input.txt";
 
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
