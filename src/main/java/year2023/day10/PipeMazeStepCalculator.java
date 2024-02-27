@@ -51,12 +51,14 @@ public class PipeMazeStepCalculator
                         if (!visited.contains(neighborPipePosition)) {
                             queue.add(neighborPosition.getValue());
                             visited.add(neighborPosition.getValue());
+                            break;
                         }
                     }
                 }
             }
 
             System.out.println("Part 1: " + visited.size() / 2);
+            System.out.println("Part 2: " + calculateNumOfTilesEnclosedByLoop(visited));
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred while trying to read a file.", e);
         }
@@ -124,5 +126,25 @@ public class PipeMazeStepCalculator
                 List.of(HORIZONTAL_PIPE, L_PIPE, F_PIPE, START_PIPE).contains(currentPipe) && List.of(HORIZONTAL_PIPE, SEVEN_PIPE, J_PIPE, START_PIPE).contains(neighborPipe);
             default -> false;
         };
+    }
+
+    // shoelace formula
+    private static double calculateNumOfTilesEnclosedByLoop(List<String> vertexPositions)
+    {
+        var area = 0.0;
+        var vertexAmounts = vertexPositions.size();
+
+        for (var i = 0; i < vertexAmounts; i++) {
+            var nextIndex = (i + 1) % vertexAmounts;
+            var currentVertexCoordinate = vertexPositions.get(i).split(",");
+            var nextVertexCoordinate = vertexPositions.get(nextIndex).split(",");
+
+            area += Integer.parseInt(currentVertexCoordinate[0]) * Integer.parseInt(nextVertexCoordinate[1]);
+            area -= Integer.parseInt(currentVertexCoordinate[1]) * Integer.parseInt(nextVertexCoordinate[0]);
+        }
+
+        area = Math.abs(area) / 2;
+
+        return area - (double) vertexAmounts / 2 + 1;
     }
 }
