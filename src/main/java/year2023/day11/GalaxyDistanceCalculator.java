@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 public class GalaxyDistanceCalculator
 {
@@ -21,28 +22,31 @@ public class GalaxyDistanceCalculator
             var input = Files.readAllLines(Paths.get(INPUT_FILE_PATH));
 
             var originalCoordinates = findGalaxyCoordinates(input);
-            var modifiedCoordinates = expandGalaxyCoordinates(originalCoordinates, input);
+            var modifiedCoordinatesWith2TimesExpansion = expandGalaxyCoordinates(originalCoordinates, input, 2);
+            var modifiedCoordinatesWith1millionTimesExpansion = expandGalaxyCoordinates(originalCoordinates, input, 1_000_000);
 
-            System.out.println("Part 1: " + calculateSumOfLengthBetweenGalaxyPairs(modifiedCoordinates));
+            System.out.println("Part 1: " + calculateSumOfLengthBetweenGalaxyPairs(modifiedCoordinatesWith2TimesExpansion));
+            System.out.println("Part 2: " + calculateSumOfLengthBetweenGalaxyPairs(modifiedCoordinatesWith1millionTimesExpansion));
         } catch (IOException e) {
             logger.log(Level.WARNING, "An error occurred while trying to read a file.", e);
         }
     }
 
-    private static List<int[]> expandGalaxyCoordinates(List<int[]> galaxyCoordinates, List<String> originalInput)
+    private static List<long[]> expandGalaxyCoordinates(List<long[]> galaxyCoordinates, List<String> originalInput, long expandingRatio)
     {
+        var expandingSpaceInBetween = expandingRatio - 1;
         var galaxyXCoordinates = galaxyCoordinates.stream()
             .map(coordinatePair -> coordinatePair[0])
             .toList();
         var galaxyYCoordinates = galaxyCoordinates.stream()
             .map(coordinatePair -> coordinatePair[1])
             .toList();
-        List<Integer> expandingGalaxyXCoordinates = galaxyXCoordinates;
-        List<Integer> expandingGalaxyYCoordinates = galaxyYCoordinates;
-        var allXIndices = IntStream.range(0, originalInput.getFirst().toCharArray().length)
+        List<Long> expandingGalaxyXCoordinates = galaxyXCoordinates;
+        List<Long> expandingGalaxyYCoordinates = galaxyYCoordinates;
+        var allXIndices = LongStream.range(0, originalInput.getFirst().toCharArray().length)
             .boxed()
             .toList();
-        var allYIndices = IntStream.range(0, originalInput.size())
+        var allYIndices = LongStream.range(0, originalInput.size())
             .boxed()
             .toList();
         var missingXIndices = allXIndices.stream()
@@ -52,31 +56,31 @@ public class GalaxyDistanceCalculator
             .filter(index -> !galaxyYCoordinates.contains(index))
             .toList();
         var expandingMissingXIndices = IntStream.range(0, missingXIndices.size())
-            .mapToObj(i -> missingXIndices.get(i) + i)
+            .mapToObj(i -> missingXIndices.get(i) + i * expandingSpaceInBetween)
             .toList();
         var expandingMissingYIndices = IntStream.range(0, missingYIndices.size())
-            .mapToObj(i -> missingYIndices.get(i) + i)
+            .mapToObj(i -> missingYIndices.get(i) + i * expandingSpaceInBetween)
             .toList();
 
-        for (int x: expandingMissingXIndices) {
+        for (long x: expandingMissingXIndices) {
             expandingGalaxyXCoordinates = expandingGalaxyXCoordinates.stream()
-                .map(xCoordinate -> xCoordinate > x ? xCoordinate + 1 : xCoordinate).toList();
+                .map(xCoordinate -> xCoordinate > x ? xCoordinate + expandingSpaceInBetween : xCoordinate).toList();
         }
 
-        for (int y: expandingMissingYIndices) {
-            expandingGalaxyYCoordinates = expandingGalaxyYCoordinates.stream().map(yCoordinate -> yCoordinate > y ? yCoordinate + 1 : yCoordinate).toList();
+        for (long y: expandingMissingYIndices) {
+            expandingGalaxyYCoordinates = expandingGalaxyYCoordinates.stream().map(yCoordinate -> yCoordinate > y ? yCoordinate + expandingSpaceInBetween : yCoordinate).toList();
         }
 
-        IntStream indices = IntStream.range(0, Math.min(expandingGalaxyXCoordinates.size(), expandingGalaxyYCoordinates.size()));
-        List<Integer> finalExpandingGalaxyXCoordinates = expandingGalaxyXCoordinates;
-        List<Integer> finalExpandingGalaxyYCoordinates = expandingGalaxyYCoordinates;
+        LongStream indices = LongStream.range(0, Math.min(expandingGalaxyXCoordinates.size(), expandingGalaxyYCoordinates.size()));
+        List<Long> finalExpandingGalaxyXCoordinates = expandingGalaxyXCoordinates;
+        List<Long> finalExpandingGalaxyYCoordinates = expandingGalaxyYCoordinates;
 
-        return indices.mapToObj(i -> new int[]{finalExpandingGalaxyXCoordinates.get(i), finalExpandingGalaxyYCoordinates.get(i)}).toList();
+        return indices.mapToObj(i -> new long[]{finalExpandingGalaxyXCoordinates.get((int)i), finalExpandingGalaxyYCoordinates.get((int)i)}).toList();
     }
 
-    private static List<int[]> findGalaxyCoordinates(List<String> input)
+    private static List<long[]> findGalaxyCoordinates(List<String> input)
     {
-        List<int[]> galaxyCoordinates = new ArrayList<>();
+        List<long[]> galaxyCoordinates = new ArrayList<>();
         var lineIndex = 0;
 
         for (String line: input) {
@@ -85,7 +89,7 @@ public class GalaxyDistanceCalculator
 
             for (char character: chars) {
                 if (character == GALAXY || Character.isDigit(character)) {
-                    galaxyCoordinates.add(new int[]{charIndex, lineIndex});
+                    galaxyCoordinates.add(new long[]{charIndex, lineIndex});
                 }
 
                 charIndex++;
@@ -97,12 +101,12 @@ public class GalaxyDistanceCalculator
         return galaxyCoordinates;
     }
 
-    private static int calculateSumOfLengthBetweenGalaxyPairs(List<int[]> expandingGalaxyCoordinates)
+    private static long calculateSumOfLengthBetweenGalaxyPairs(List<long[]> expandingGalaxyCoordinates)
     {
         var galaxyIndex = 0;
-        var sum = 0;
+        var sum = 0L;
 
-        for (int[] currentGalaxyCoordinatePair : expandingGalaxyCoordinates) {
+        for (long[] currentGalaxyCoordinatePair : expandingGalaxyCoordinates) {
             for (var j = galaxyIndex + 1; j < expandingGalaxyCoordinates.size(); j++) {
                 var nextGalaxyCoordinatePair = expandingGalaxyCoordinates.get(j);
                 sum += Math.abs(currentGalaxyCoordinatePair[0] - nextGalaxyCoordinatePair[0]);
