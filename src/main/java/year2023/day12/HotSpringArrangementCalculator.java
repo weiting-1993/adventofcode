@@ -49,7 +49,6 @@ public class HotSpringArrangementCalculator
     {
         var parts = line.trim().split(" ");
         var originalRecord = parts[0];
-        var singleUnfoldedRecord = "?" + originalRecord;
         var unfoldedRecord = String.join("?", Collections.nCopies(5, originalRecord));
         var rules = Arrays.stream(parts[1].split(",")).mapToInt(Integer::parseInt).boxed().toList();
         var unfoldedRules = IntStream.range(0, 5).mapToObj(i -> rules).flatMap(List::stream).toList();
